@@ -1,0 +1,89 @@
+import { verifyToken } from "@/app/lib/auth/verifyToken";
+import { dbConnect } from "@/app/lib/db";
+import Booking from "@/app/models/Booking";
+import Counter from "@/app/models/Counter";
+import Room from "@/app/models/Room";
+
+export async function GET(req, context) {
+  await dbConnect();
+
+  const { id } = await context.params;
+
+  try {
+    const room = await Room.findById(id);
+
+    if (!room) {
+      return new Response(JSON.stringify({ message: "לא נמצא חדר כזה" }), {
+        status: 404,
+      });
+    }
+
+    return Response.json(room, { status: 200 });
+  } catch (error) {
+    return Response.json({ message: "שגיאה בטעינת חדר" }, { status: 500 });
+  }
+}
+
+
+export async function POST(req, { params }) {
+  await dbConnect();
+
+  const { decoded, error, status } = verifyToken(req);
+  if (error) {
+    return new Response(JSON.stringify({ message: error }), { status });
+  }
+
+  const { id: roomId } = params;
+
+  const body = await req.json();
+  const { checkInDate, checkOutDate } = body;
+
+  console.log(decoded);
+  const userId = decoded.userId; 
+  
+  try {
+    const overlappingBooking = await Booking.findOne({
+      room: roomId,
+      $or: [
+        {
+          checkInDate: { $lt: new Date(checkOutDate) },
+          checkOutDate: { $gt: new Date(checkInDate) },
+        },
+      ],
+    });
+
+    if (overlappingBooking) {
+      return new Response(JSON.stringify({ message: "החדר כבר מוזמן בתאריכים האלו" }), {
+        status: 400,
+      });
+    }
+
+    const counter = await Counter.findOneAndUpdate(
+      { name: 'booking' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    const currentYear = new Date().getFullYear();
+    const formattedBookingNumber = `BK-${currentYear}-${counter.seq.toString().padStart(4, '0')}`;
+    const newBooking = new Booking({
+      bookingNumber: formattedBookingNumber,
+      user: userId,
+      room: roomId,
+      checkInDate,
+      checkOutDate,
+    });
+    
+    const savedBooking = await newBooking.save();
+const plainBooking = savedBooking.toObject(); 
+
+    return new Response(JSON.stringify(plainBooking), { status: 201 });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        message: "שגיאה ביצירת הזמנת חדר",
+        error: error.message,
+      }),
+      { status: 500 }
+    );
+  }
+}

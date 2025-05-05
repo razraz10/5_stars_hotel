@@ -68,11 +68,10 @@ export default function page() {
         checkOutDate: new Date(checkOutDate),
       });
       setLoading(true);
-      toast.success("החדר הוזמן בהצלחה");
-      setLoading(false);
+      localStorage.setItem("orderConfirmed", "true");
+      router.push('/finishedOrder')
     } catch (error) {
       console.error(error);
-
       setLoading(false);
       toast.error(error?.response?.data?.message || "שגיאה בהזמנה");
     }

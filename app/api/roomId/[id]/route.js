@@ -24,7 +24,6 @@ export async function GET(req, context) {
   }
 }
 
-
 export async function POST(req, { params }) {
   await dbConnect();
 
@@ -38,12 +37,30 @@ export async function POST(req, { params }) {
   const body = await req.json();
   const { checkInDate, checkOutDate } = body;
 
-  console.log(decoded);
-  const userId = decoded.userId; 
-  
+  // console.log(decoded);
+  const userId = decoded.userId;
+
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+
+    if (checkIn < today || checkOut < today) {
+      missingFields.push("התאריכים עברו כבר");
+      return new Response(
+        JSON.stringify({
+          message: "לא ניתן להזמין תאריכים שעברו",
+        }),
+        { status: 400 }
+      );
+    }
+
     const overlappingBooking = await Booking.findOne({
       room: roomId,
+      isActive: true,
+      isDeleted: false,
       $or: [
         {
           checkInDate: { $lt: new Date(checkOutDate) },
@@ -53,18 +70,23 @@ export async function POST(req, { params }) {
     });
 
     if (overlappingBooking) {
-      return new Response(JSON.stringify({ message: "החדר כבר מוזמן בתאריכים האלו" }), {
-        status: 400,
-      });
+      return new Response(
+        JSON.stringify({ message: "החדר כבר מוזמן בתאריכים האלו" }),
+        {
+          status: 400,
+        }
+      );
     }
 
     const counter = await Counter.findOneAndUpdate(
-      { name: 'booking' },
+      { name: "booking" },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
     const currentYear = new Date().getFullYear();
-    const formattedBookingNumber = `BK-${currentYear}-${counter.seq.toString().padStart(4, '0')}`;
+    const formattedBookingNumber = `BK-${currentYear}-${counter.seq
+      .toString()
+      .padStart(4, "0")}`;
     const newBooking = new Booking({
       bookingNumber: formattedBookingNumber,
       user: userId,
@@ -72,9 +94,9 @@ export async function POST(req, { params }) {
       checkInDate,
       checkOutDate,
     });
-    
+
     const savedBooking = await newBooking.save();
-const plainBooking = savedBooking.toObject(); 
+    const plainBooking = savedBooking.toObject();
 
     return new Response(JSON.stringify(plainBooking), { status: 201 });
   } catch (error) {

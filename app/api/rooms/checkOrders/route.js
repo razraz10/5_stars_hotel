@@ -1,3 +1,4 @@
+import { verifyToken } from "@/app/lib/auth/verifyToken";
 import { dbConnect } from "@/app/lib/db";
 import Booking from "@/app/models/Booking";
 import Room from "@/app/models/Room";
@@ -100,6 +101,19 @@ export async function POST(req) {
         { status: 404 }
       );
     }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+    
+    if (checkIn < today || checkOut < today) {
+      missingFields.push("התאריכים עברו כבר")
+      return new Response(
+        JSON.stringify({ message: "לא ניתן להזמין תאריכים שעברו" , errors: missingFields}),
+        { status: 400 }
+      );
+    }
 
     const existingBooking = await Booking.findOne({
       _id: { $ne: order._id },
@@ -123,6 +137,8 @@ export async function POST(req) {
     order.checkInDate = new Date(checkInDate);
     order.checkOutDate = new Date(checkOutDate);
     order.updatedAt = new Date();
+    order.isDeleted = false;
+    order.isActive = true;
 
     await order.save();
 
@@ -131,6 +147,59 @@ export async function POST(req) {
     });
   } catch (error) {
     return new Response(JSON.stringify({ message: "שגיאה בטעינת הזמנה" }), {
+      status: 500,
+    });
+  }
+}
+
+export async function DELETE(req) {
+  const { decoded, error, status } = verifyToken(req);
+  if (error) {
+    return new Response(JSON.stringify({ message: error }), { status });
+  }
+
+  await dbConnect();
+
+  try {
+    const body = await req.json();
+
+    const { bookingNumber } = body;
+    if (!bookingNumber) {
+      return new Response(
+        JSON.stringify({ message: "צריך לספק מספר הזמנה למחיקה" }),
+        { status: 400 }
+      );
+    }
+
+    const order = await Booking.findOne({ bookingNumber: bookingNumber });
+
+    if (!order) {
+      return new Response(
+        JSON.stringify({ message: "הזמנה לא נמצאה למחיקה" }),
+        { status: 404 }
+      );
+    }
+
+    const isOwner = decoded.role === "user";
+    const isAdmin = decoded.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return new Response(
+        JSON.stringify({ message: "אין הרשאה למחוק את ההזמנה" }),
+        { status: 403 }
+      );
+    }
+
+    order.isActive = false;
+    order.isDeleted = true;
+    await order.save();
+
+    return new Response(
+      JSON.stringify({ message: "ההזמנה סומנה כמחוקה בהצלחה" }),
+      { status: 200 }
+    );
+  } catch (error) {
+    return new Response(JSON.stringify({ message: "שגיאה במחיקת ההזמנה" }), {
       status: 500,
     });
   }

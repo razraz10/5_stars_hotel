@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/app/store/authStore";
-import { BedDouble, User } from "lucide-react";
+import { BedDouble, BedIcon, Clock, User } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import UserProfile from "@/app/components/personal/UserProfile";
 import Booking from "@/app/components/personal/Booking";
 import axiosSelf from "@/app/lib/axiosInstance";
+import BookingHistory from "@/app/components/personal/BookingHistory";
 
 export default function page() {
   // אחרי עידכון עובר לדף הבית
@@ -88,7 +89,7 @@ export default function page() {
           <p className="text-gray-600 mt-2">נהל את הפרופיל וההזמנות שלך</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className=" overflow-hidden">
           {/* טאבים */}
           <div className="flex items-center justify-center">
             <button
@@ -113,6 +114,17 @@ export default function page() {
               <BedDouble size={18} />
               הזמנות
             </button>
+            <button
+              onClick={() => setActiveTab("bookingsHistory")}
+              className={`flex items-center gap-2 px-6 py-4 font-medium text-sm transition ${
+                activeTab === "bookingsHistory"
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              <Clock size={18} />
+              היסטוריית הזמנות
+            </button>
           </div>
 
           {/* תוכן */}
@@ -125,9 +137,13 @@ export default function page() {
                   handleSave={handleSave}
                 />
               </div>
-            ) : (
+            ) : activeTab === "bookings" ?(
               <div>
-                <Booking bookedRooms={bookedRooms} />
+                <Booking bookedRooms={bookedRooms} setBookedRooms={setBookedRooms} />
+              </div>
+            ):(
+              <div>
+                <BookingHistory bookedRooms={bookedRooms} />
               </div>
             )}
           </div>

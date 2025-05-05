@@ -62,9 +62,7 @@ export default function page() {
                 <div className="p-6">
                   <h3 className="text-xl font-semibold mb-2">{room.title}</h3>
                   <p className="text-gray-600 mb-4">החל מ-{room.price} ללילה</p>
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition">
-                    הזמן עכשיו
-                  </button>
+                  
                 </div>
               </div>
             ))}

@@ -20,8 +20,16 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axiosSelf from "@/app/lib/axiosInstance";
+import { useRouter } from "next/navigation";
 
-export default function CheckOrders({ orderData, setCheckOrder }) {
+export default function CheckOrders({
+  orderData,
+  setCheckOrder,
+  setBookedRoomsData,
+  bookedRooms,
+  setBookedRooms,
+}) {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     bookingNumber: orderData.bookingNumber,
     checkInDate: orderData.checkInDate?.slice(0, 10),
@@ -39,6 +47,13 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
       const response = await axiosSelf.post(`/rooms/checkOrders`, formData);
       toast.success("הזמנה עודכנה בהצלחה");
       setCheckOrder(false);
+      setBookedRoomsData((prevRooms) =>
+        prevRooms.map((room) =>
+          room.bookingNumber === formData.bookingNumber
+            ? { ...room, ...formData }
+            : room
+        )
+      );
     } catch (error) {
       if (error.response) {
         const { message, errors } = error.response.data;
@@ -55,6 +70,40 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
       }
     }
   };
+
+  const deleteOrder = async () => {
+    try {
+      const response = await axiosSelf.delete(`/rooms/checkOrders`, {
+        data: { bookingNumber: formData.bookingNumber },
+      });
+      setCheckOrder(false);
+      toast.success("הזמנה נמחקה בהצלחה");
+
+      setBookedRoomsData((prevRooms) =>
+        prevRooms.map((room) =>
+          room.bookingNumber === formData.bookingNumber
+            ? { ...room, isActive: false, isDeleted: true }
+            : room
+        )
+      );
+    } catch (error) {
+      if (error.response) {
+        const { message, errors } = error.response.data;
+        if (errors && Array.isArray(errors)) {
+          const errorMessage = errors.join("\n");
+          toast.error(errorMessage, {
+            style: { textAlign: "right" },
+          });
+        } else {
+          toast.error(message, {
+            style: { textAlign: "right" },
+          });
+        }
+      }
+    }
+  };
+  console.log(orderData);
+
   return (
     <div className="w-1/2 max-w-xl  max-h-[80vh] no-scrollbar overflow-y-auto mt-10 bg-white shadow-xl rounded-2xl  space-y-4">
       <div className="bg-blue-600 px-6 py-4 rounded-xl sticky top-0">
@@ -71,6 +120,11 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
           </div>
         </div>
       </div>
+      {orderData.isDeleted === true && (
+        <div className="text-center text-red-600">
+          כרגע ההזמנה מחוקה מהמערכת
+        </div>
+      )}
 
       {/* מספר הזמנה */}
       <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg shadow-sm">
@@ -106,15 +160,15 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
             {formatDateWithDayName(orderData.checkInDate)}
           </span>
           <div className="flex items-center ">
-               <Pen color="blue" size={15}/>
-          <input
-            type="date"
-            name="checkInDate"
-            value={formData.checkInDate}
-            onChange={handleChange}
-            className="inputStyle bg-gray-300 rounded-2xl px-1"
-          />
-        </div>
+            <Pen color="blue" size={15} />
+            <input
+              type="date"
+              name="checkInDate"
+              value={formData.checkInDate}
+              onChange={handleChange}
+              className="inputStyle bg-gray-300 rounded-2xl px-1"
+            />
+          </div>
         </div>
       </div>
 
@@ -127,15 +181,15 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
             {formatDateWithDayName(orderData.checkOutDate)}
           </span>
           <div className="flex items-center ">
-               <Pen color="blue" size={15}/>
-          <input
-            type="date"
-            name="checkOutDate"
-            value={formData.checkOutDate}
-            onChange={handleChange}
-            className="inputStyle bg-gray-300 rounded-2xl px-1"
-          />
-        </div>
+            <Pen color="blue" size={15} />
+            <input
+              type="date"
+              name="checkOutDate"
+              value={formData.checkOutDate}
+              onChange={handleChange}
+              className="inputStyle bg-gray-300 rounded-2xl px-1"
+            />
+          </div>
         </div>
       </div>
 
@@ -167,18 +221,17 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
                 {orderData.room.roomNumber || "..."}
               </span>
               <div className="flex items-center ">
-               <Pen color="blue" size={15}/>
-              <input
-                type="text"
-                name="roomNumber"
-                value={formData.roomNumber}
-                onChange={handleChange}
-                maxLength={8}
-                placeholder="מספר חדר"
-                className="inputStyle bg-gray-300 w-1/2 rounded-2xl text-center "
-              /> 
+                <Pen color="blue" size={15} />
+                <input
+                  type="text"
+                  name="roomNumber"
+                  value={formData.roomNumber}
+                  onChange={handleChange}
+                  maxLength={8}
+                  placeholder="מספר חדר"
+                  className="inputStyle bg-gray-300 w-1/2 rounded-2xl text-center "
+                />
               </div>
-              
             </div>
             <div className="flex flex-col">
               <span className="text-sm text-gray-600">קומת חדר</span>
@@ -215,13 +268,30 @@ export default function CheckOrders({ orderData, setCheckOrder }) {
       </div>
 
       {/* כפתור עדכון */}
-      <div className="flex justify-center py-1">
-        <button
-          onClick={changeOrder}
-          className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-2 rounded-xl font-semibold"
-        >
-          עדכן הזמנה
-        </button>
+      <div className="flex justify-center py-1 px-1 gap-3">
+        {orderData.isDeleted === true ? (
+          <button
+            onClick={changeOrder}
+            className="bg-blue-600 px-3 cursor-pointer hover:bg-blue-700 transition text-white py-2 rounded-xl font-semibold"
+          >
+            שחזר הזמנה
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={changeOrder}
+              className="bg-blue-600 w-3/4 cursor-pointer hover:bg-blue-700 transition text-white py-2 rounded-xl font-semibold"
+            >
+              עדכן הזמנה
+            </button>
+            <button
+              onClick={deleteOrder}
+              className="bg-red-600 w-1/4 cursor-pointer hover:bg-red-700 transition text-white py-2 rounded-xl font-semibold"
+            >
+              מחק הזמנה
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

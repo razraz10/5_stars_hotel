@@ -18,9 +18,12 @@ import {
 import "react-datepicker/dist/react-datepicker.css";
 import toast, { Toaster } from "react-hot-toast";
 import axiosSelf from "@/app/lib/axiosInstance";
+import GooglePayButton from "@google-pay/button-react";
 
 export default function page() {
   const [loading, setLoading] = useState(false);
+
+  const [isRoomAvailable, setIsRoomAvailable] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   // console.log(user);
@@ -38,13 +41,13 @@ export default function page() {
   };
 
   useEffect(() => {
-    if(!user){
-      router.push('/login')
+    if (!user) {
+      router.push("/login");
     }
     fetchRoom();
   }, [id]);
 
-  const handleReservation = async () => {
+  const handleCheckRooms = async () => {
     if (!startDate && !endDate) {
       toast.error("יש לבחור תאריכים להזמנה");
       return;
@@ -61,19 +64,63 @@ export default function page() {
     try {
       const checkInDate = startDate;
       const checkOutDate = endDate;
-      await axiosSelf.post(`/roomId/${id}`, {
+      await axiosSelf.post(`/rooms/${id}`, {
         userId: user._id,
         roomId: room.id,
         checkInDate: new Date(checkInDate),
         checkOutDate: new Date(checkOutDate),
       });
-      setLoading(true);
-      localStorage.setItem("orderConfirmed", "true");
-      router.push('/finishedOrder')
+      toast.success("לשמחתינו החדר פנוי בתאריכים האלה");
+      setIsRoomAvailable(true);
     } catch (error) {
       console.error(error);
-      setLoading(false);
       toast.error(error?.response?.data?.message || "שגיאה בהזמנה");
+    }
+  };
+
+  const handleReservation = async () => {
+    if (!startDate && !endDate) {
+      toast.error("יש לבחור תאריכים להזמנה");
+      return;
+    }
+    if (!startDate) {
+      toast.error("יש לבחור תאריך התחלה להזמנה");
+      return;
+    }
+    if (!endDate) {
+      toast.error("יש לבחור תאריך סיום להזמנה");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const checkInDate = startDate;
+      const checkOutDate = endDate;
+      const savedBooking = await axiosSelf.post(`/roomId/${id}`, {
+        userId: user._id,
+        roomId: room.id,
+        checkInDate: new Date(checkInDate),
+        checkOutDate: new Date(checkOutDate),
+      });
+      await axiosSelf.post(`/sendEmail`, {
+        to: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        bookingNumber: savedBooking.data.bookingNumber,
+        checkInDate: savedBooking.data.checkInDate,
+        checkOutDate: savedBooking.data.checkOutDate,
+        price: room.price,
+        roomType: room.roomType,
+        view: room.view,
+        imageUrl: room.imageUrl,
+      });
+
+      localStorage.setItem("orderConfirmed", "true");
+      router.push("/finishedOrder");
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "שגיאה בהזמנה");
+      setLoading(false);
     }
     // שלח בקשת הזמנה לשרת עם התאריכים
     console.log("הזמנה:", {
@@ -232,19 +279,88 @@ export default function page() {
                       />
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleReservation}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 mt-4"
-                  >
-                    {loading ? "מזמין..." : "הזמן עכשיו"}
-                  </button>
+                  {isRoomAvailable ? (
+                    <>
+                      <div className="mt-6 flex justify-center">
+                        <GooglePayButton
+                          environment="TEST"
+                          paymentRequest={{
+                            apiVersion: 2,
+                            apiVersionMinor: 0,
+                            allowedPaymentMethods: [
+                              {
+                                type: "CARD",
+                                parameters: {
+                                  allowedAuthMethods: [
+                                    "PAN_ONLY",
+                                    "CRYPTOGRAM_3DS",
+                                  ],
+                                  allowedCardNetworks: ["VISA", "MASTERCARD"],
+                                },
+                                tokenizationSpecification: {
+                                  type: "PAYMENT_GATEWAY",
+                                  parameters: {
+                                    gateway: "example", // סתם לצורך בדיקה
+                                    gatewayMerchantId: "exampleMerchantId",
+                                  },
+                                },
+                              },
+                            ],
+                            merchantInfo: {
+                              merchantName: "רזרז בדיקה",
+                            },
+                            transactionInfo: {
+                              totalPriceStatus: "FINAL",
+                              totalPriceLabel: "סה״כ",
+                              totalPrice: `${room.price.toFixed(2)}`,
+                              currencyCode: "ILS",
+                              countryCode: "IL",
+                            },
+                          }}
+                          onLoadPaymentData={(paymentData) => {
+                            console.log("נתוני תשלום שהתקבלו:", paymentData);
+                            alert("תשלום בוצע (לצורכי בדיקה בלבד)");
+                          }}
+                          buttonColor="black"
+                          buttonType="buy"
+                        />
+                      </div>
+                      <button
+                        onClick={handleReservation}
+                        className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 mt-4"
+                      >
+                        {loading ? "מזמין..." : "הזמן עכשיו"}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleCheckRooms}
+                      className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 mt-4"
+                    >
+                      {loading ? "בודק לך..." : "בדוק זמינות"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      {loading && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black/30 backdrop-blur-sm z-50">
+          <div className="flex flex-col items-center gap-4">
+            <Image
+              src="/Animation - 1744186901254.gif"
+              width={100}
+              height={100}
+              alt="loading"
+            />
+            <p className="text-lg font-semibold text-gray-700">
+              שולח בקשת הזמנה אנא להמתין בעת שאנחנו מעבדים את הנתונים...
+            </p>
+          </div>
+        </div>
+      )}
       <Toaster />
     </div>
   );

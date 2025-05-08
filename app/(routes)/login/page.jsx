@@ -28,34 +28,43 @@ export default function LoginRegister() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit(); // בלי e כי זו קריאה רגילה, לא מהאירוע
+    }
+  };
+
   // שליחת טופס התחברות / רישום
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async () => {
+    // e.preventDefault();
     
 
-    try {
-      // אם כבר יש חשבון
-      if (isLogin) {
-        // התחברות
-        const { data } = await axiosSelf.post("/auth/login", {
-          email: formData.email,
-          password: formData.password,
-        });        
-        login(data.user, data.token);
-        
-        toast.success('כעת הינך מחובר/ת')
-      } else {
-        // רישום משתמש חדש
-        await axiosSelf.post("/auth/register", formData);
-        setIsLogin(true);
-        toast.success('נרשמת בהצלחה')
-      }
-      router.push("/");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "שגיאה לא ידועה");
-      setLoading(false);
-    } 
+      setLoading(true);
+      
+  
+      try {
+        // אם כבר יש חשבון
+        if (isLogin) {
+          // התחברות
+          const { data } = await axiosSelf.post("/auth/login", {
+            email: formData.email,
+            password: formData.password,
+          });        
+          login(data.user, data.token);
+          
+          toast.success('כעת הינך מחובר/ת')
+        } else {
+          // רישום משתמש חדש
+          await axiosSelf.post("/auth/register", formData);
+          setIsLogin(true);
+          toast.success('נרשמת בהצלחה')
+        }
+        router.push("/");
+      } catch (err) {
+        toast.error(err.response?.data?.message || "שגיאה לא ידועה");
+        setLoading(false);
+      } 
+    
   };
 
   return (
@@ -74,6 +83,7 @@ export default function LoginRegister() {
                 placeholder="שם פרטי"
                 className="p-2 border rounded"
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 required
               />
               <input
@@ -82,6 +92,7 @@ export default function LoginRegister() {
                 placeholder="שם משפחה"
                 className="p-2 border rounded"
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 required
               />
             </>
@@ -93,6 +104,7 @@ export default function LoginRegister() {
             placeholder="אימייל"
             className="p-2 border rounded"
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             required
           />
           <input
@@ -101,6 +113,7 @@ export default function LoginRegister() {
             placeholder="סיסמה (8 ספרות בלבד)"
             className="p-2 border rounded"
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             pattern="\d{8}"
             required
           />
@@ -110,7 +123,7 @@ export default function LoginRegister() {
             className="bg-green-600 text-white px-4 py-2 rounded"
             disabled={loading}
           >
-            {loading ? "טוען..." : isLogin ? "התחבר" : "הירשם"}
+            {loading ? "...טוען" : isLogin ? "התחבר" : "הירשם"}
           </button>
         </div>
 

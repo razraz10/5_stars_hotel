@@ -1,5 +1,6 @@
 "use client";
 import { useAuthStore } from "@/app/store/authStore";
+import clsx from "clsx";
 import {
   Check,
   Telescope,
@@ -8,14 +9,21 @@ import {
   CookingPot as Smoking,
   Bath,
   Wind,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 export default function page() {
   const [rooms, setRooms] = useState(null);
+  const [loadingRoomId, setLoadingRoomId] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const roomsPerPage = 2;
 
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
@@ -32,7 +40,9 @@ export default function page() {
         setRooms(filter);
       });
   }, [user, router]);
-
+useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
   if (!user) return null;
 
   if (!rooms) {
@@ -41,7 +51,7 @@ export default function page() {
         <div className="text-4xl">טוען חדרים</div>
         <div className="flex items-center justify-center">
           <Image
-            src={"/Animation - 1744186901254.gif"}
+            src={"/flame-16245_256.gif"}
             width={200}
             height={200}
             alt="loading"
@@ -51,12 +61,19 @@ export default function page() {
     );
   }
 
+  const totalPages = Math.ceil(rooms.length / roomsPerPage);
+  const startIndex = (currentPage - 1) * roomsPerPage;
+  const endIndex = startIndex + roomsPerPage;
+  const paginatedRooms = rooms.slice(startIndex, endIndex);
+  
+  
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen" dir="rtl">
       <h1 className="text-3xl font-bold text-center mb-8">🏨 רשימת החדרים</h1>
 
       <div className="max-w-7xl mx-auto grid gap-6">
-        {rooms.map((room) => (
+        {paginatedRooms.map((room) => (
           <div
             key={room._id}
             className="bg-white rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.01]"
@@ -139,15 +156,80 @@ export default function page() {
               </div>
 
               <div className="md:w-1/4   p-6 flex items-center justify-center">
-                <Link href={`/bookRoom/${room._id}`}>
-                  <button className="w-full cursor-pointer bg-blue-500 text-white py-4 px-6 rounded-lg text-lg font-semibold hover:bg-blue-600 transition-colors duration-200">
-                    הזמנת חדר
-                  </button>
-                </Link>
+                <button
+                  onClick={() => {
+                    setLoadingRoomId(room._id);
+                    router.push(`/bookRoom/${room._id}`);
+                  }}
+                  disabled={loadingRoomId === room._id}
+                  className={clsx(
+                    `w-full cursor-pointer bg-blue-500 text-white py-4 px-6 rounded-lg text-lg font-semibold hover:bg-blue-600 transition-colors duration-200 flex items-center justify-center gap-2`,
+                    {
+                      "bg-blue-600": loadingRoomId === room._id,
+                    }
+                  )}
+                >
+                  {loadingRoomId == room._id ? (
+                    <Image
+                      src={"/waiting-7579_256.gif"}
+                      width={40}
+                      height={40}
+                      alt="loading"
+                    />
+                  ) : (
+                    <>{" הזמנת חדר"}</>
+                  )}
+                </button>
               </div>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 🧭 כפתורי ניווט */}
+      <div className="flex items-center justify-center gap-3 py-4 ">
+        {/* לעמוד הראשון */}
+        <button
+          onClick={() => setCurrentPage(1)}
+          disabled={currentPage === 1}
+          className="text-xl cursor-pointer disabled:opacity-40"
+        >
+          <ChevronsRight color="#055ff0"/>
+        </button>
+
+        {/* עמוד קודם */}
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="text-xl cursor-pointer disabled:opacity-40"
+        >
+          <ChevronRight color="#055ff0" />
+        </button>
+
+        {/* עמוד נוכחי מתוך כלל העמודים */}
+        <span className="text-lg font-medium text-gray-800">
+          עמוד {currentPage} מתוך {totalPages}
+        </span>
+
+        {/* עמוד הבא */}
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          disabled={currentPage === totalPages}
+          className="text-xl cursor-pointer disabled:opacity-40"
+        >
+          <ChevronLeft color="#055ff0"/>
+        </button>
+
+        {/* לעמוד האחרון */}
+        <button
+          onClick={() => setCurrentPage(totalPages)}
+          disabled={currentPage === totalPages}
+          className="text-xl cursor-pointer disabled:opacity-40"
+        >
+          <ChevronsLeft color="#055ff0"/>
+        </button>
       </div>
     </div>
   );

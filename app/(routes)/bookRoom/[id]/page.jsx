@@ -137,7 +137,7 @@ export default function page() {
         <div className="text-4xl">טוען חדר</div>
         <div className="flex items-center justify-center">
           <Image
-            src={"/Animation - 1744186901254.gif"}
+            src={"/flame-16245_256.gif"}
             width={200}
             height={200}
             alt="loading"
@@ -350,7 +350,7 @@ export default function page() {
         <div className="fixed inset-0 flex justify-center items-center bg-black/30 backdrop-blur-sm z-50">
           <div className="flex flex-col items-center gap-4">
             <Image
-              src="/Animation - 1744186901254.gif"
+              src="/flame-16245_256.gif"
               width={100}
               height={100}
               alt="loading"

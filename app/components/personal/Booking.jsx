@@ -52,16 +52,16 @@ export default function Booking({ bookedRooms, setBookedRooms }) {
             >
               <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
                 <h3 className="font-medium">
-                  חדר מספר {roomDetails.room.roomNumber}
+                  חדר מספר {roomDetails?.room?.roomNumber}
                 </h3>
                 <h3 className="font-medium">
-                  מספר הזמנה {roomDetails.bookingNumber}
+                  מספר הזמנה {roomDetails?.bookingNumber}
                 </h3>
               </div>
               <div className="p-4 space-y-4">
                 <div className="w-full h-full">
                   <Image
-                    src={roomDetails.room.imageUrl}
+                    src={roomDetails?.room?.imageUrl}
                     width={300}
                     height={200}
                     alt="תמונת החדר"
@@ -72,7 +72,7 @@ export default function Booking({ bookedRooms, setBookedRooms }) {
                   <div>
                     <p className="text-sm text-gray-500">תאריך כניסה</p>
                     <p className="font-medium">
-                      {formatDateWithDayName(roomDetails.checkInDate)}
+                      {formatDateWithDayName(roomDetails?.checkInDate)}
                     </p>
                   </div>
                 </div>
@@ -82,7 +82,7 @@ export default function Booking({ bookedRooms, setBookedRooms }) {
                   <div>
                     <p className="text-sm text-gray-500">תאריך יציאה</p>
                     <p className="font-medium">
-                      {formatDateWithDayName(roomDetails.checkOutDate)}
+                      {formatDateWithDayName(roomDetails?.checkOutDate)}
                     </p>
                   </div>
                 </div>
@@ -92,10 +92,10 @@ export default function Booking({ bookedRooms, setBookedRooms }) {
                   <div>
                     <p className="text-sm text-gray-500">הזמנה נוצרה</p>
                     <p className="font-medium">
-                      {formatDateWithTime(roomDetails.createdAt)} <br />
+                      {formatDateWithTime(roomDetails?.createdAt)} <br />
                       <span className="text-sm text-gray-500">
-                        ({formatRelativeDate(roomDetails.createdAt)} -{" "}
-                        {formatDistanceFromNow(roomDetails.createdAt)})
+                        ({formatRelativeDate(roomDetails?.createdAt)} -{" "}
+                        {formatDistanceFromNow(roomDetails?.createdAt)})
                       </span>
                     </p>
                   </div>

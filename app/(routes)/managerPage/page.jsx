@@ -128,9 +128,9 @@ export default function page() {
       <div className="flex-1 overflow-auto">
         <header className="bg-white shadow-sm">
           <div className="flex items-center justify-between px-8 py-6">
-            <h2 className="text-2xl font-bold">לוח בקרה</h2>
+            <h2 className="text-2xl font-bold">לוח בקרת מנהלים</h2>
             <div className="flex items-center gap-4">
-              <div className="relative">
+              {/* <div className="relative">
                 <input
                   type="text"
                   placeholder="חיפוש..."
@@ -140,7 +140,7 @@ export default function page() {
                   className="absolute right-3 top-2.5 text-gray-400"
                   size={20}
                 />
-              </div>
+              </div> */}
             </div>
           </div>
         </header>

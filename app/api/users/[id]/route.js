@@ -3,6 +3,7 @@ import { dbConnect } from "@/app/lib/db";
 import User from "@/app/models/User";
 import bcrypt from "bcryptjs";
 
+// עדכון פרטי משתמש
 export async function PUT(req, context) {
   await dbConnect();
 
@@ -16,6 +17,7 @@ export async function PUT(req, context) {
     });
   }
 
+  // בדוק אם המשתמש הוא אדמין  או אם המשתמש מנסה לעדכן את הפרטים של עצמו
   if (!decoded || (decoded.role !== 'admin' && decoded.userId !== id)) {
     return new Response(JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }), { status: 403 });
   }
@@ -40,6 +42,7 @@ export async function PUT(req, context) {
       );
     }
 
+    // אם הוא מנסה לשנות סיסמה, אז הוא חייב להזין גם את הסיסמה הנוכחית
     if (newPassword && !currentPassword) {
       errors.push("עליך להזין את הסיסמה הנוכחית כדי לשנות סיסמה");
     }
@@ -78,6 +81,7 @@ export async function PUT(req, context) {
       email,
     };
 
+    // רק אם יש סיסמה חדשה נבצע את הבדיקות
     if (newPassword) { 
       if (!passwordRegex.test(newPassword)) {
       errors.push("הסיסמה חייבת להכיל בדיוק 8 ספרות");
@@ -86,6 +90,7 @@ export async function PUT(req, context) {
         { status: 400 }
       );
     }
+    // בודק אם הסיסמה הנוכחית נכונה
       const isPasswordCorrect = await bcrypt.compare(
         currentPassword,
         user.password
@@ -98,10 +103,12 @@ export async function PUT(req, context) {
         );
       }
 
+      // אם הסיסמה הנוכחית נכונה, נבצע את העדכון
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       updatedFields.password = hashedPassword;
     }
 
+    // עידכון המשתמש
     const updatedUser = await User.findByIdAndUpdate(id, updatedFields, {
       new: true,
     });

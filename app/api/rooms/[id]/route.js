@@ -3,6 +3,7 @@ import { dbConnect } from "@/app/lib/db";
 import Booking from "@/app/models/Booking";
 import Room from "@/app/models/Room";
 
+// בודק אם החדר פנוי בתאריכים שהמשתמש רוצה להזמין
 export async function POST(req, { params }) {
     await dbConnect();
   
@@ -59,7 +60,7 @@ export async function POST(req, { params }) {
     } catch (error) {
       return new Response(
         JSON.stringify({
-          message: "שגיאה ביצירת הזמנת חדר",
+          message: "שגיאה בבדיקת זמינות חדר",
           error: error.message,
         }),
         { status: 500 }

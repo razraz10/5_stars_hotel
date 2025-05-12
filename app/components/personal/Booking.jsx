@@ -50,7 +50,7 @@ export default function Booking({ bookedRooms, setBookedRooms }) {
               key={index}
               className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition"
             >
-              <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+              <div className="bg-blue-500 px-4 py-3 border-b border-gray-200">
                 <h3 className="font-medium">
                   חדר מספר {roomDetails?.room?.roomNumber}
                 </h3>

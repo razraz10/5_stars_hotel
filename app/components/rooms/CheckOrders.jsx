@@ -120,9 +120,16 @@ export default function CheckOrders({
           </div>
         </div>
       </div>
+
       {orderData.isDeleted === true && (
         <div className="text-center text-red-600">
           כרגע ההזמנה מחוקה מהמערכת
+        </div>
+      )}
+      
+      {orderData.isActive === false && (
+        <div className="text-center text-red-600">
+          עבר זמן ההזמנה
         </div>
       )}
 

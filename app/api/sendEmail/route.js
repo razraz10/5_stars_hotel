@@ -4,6 +4,7 @@ import EmailTemplate from "@/app/components/emailConfirm/EmailTemplate";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// שליחת אימייל לאישור הזמנה
 export async function POST(req) {
   try {
     const body = await req.json();

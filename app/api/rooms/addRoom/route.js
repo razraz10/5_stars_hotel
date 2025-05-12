@@ -3,19 +3,22 @@ import { dbConnect } from "@/app/lib/db";
 import Room from "@/app/models/Room";
 import { v2 as cloudinary } from "cloudinary";
 
+// להביא חדר ספציפי לפי מספר חדר
 export async function GET(req) {
   await dbConnect();
 
   const { decoded, error, status } = verifyToken(req);
-if (error) {
-  return new Response(JSON.stringify({ message: error }), { status });
-}
+  if (error) {
+    return new Response(JSON.stringify({ message: error }), { status });
+  }
 
-// לאחר שהטוקן אושר, אפשר לבדוק אם למשתמש יש את ההרשאות המתאימות
-if (decoded.role !== 'admin') {
-  return new Response(JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }), { status: 403 });
-}
-
+  // לאחר שהטוקן אושר, אפשר לבדוק אם למשתמש יש את ההרשאות המתאימות
+  if (decoded.role !== "admin") {
+    return new Response(
+      JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }),
+      { status: 403 }
+    );
+  }
 
   try {
     const { searchParams } = new URL(req.url);
@@ -49,6 +52,7 @@ if (decoded.role !== 'admin') {
   }
 }
 
+// בשביל העלאת תמונות  Cloudinary הגדרת
 cloudinary.config({
   cloudinary_url: process.env.CLOUDINARY_URL,
 });
@@ -67,6 +71,7 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
+
 // יצירת חדר
 export async function POST(req) {
   await dbConnect();
@@ -75,10 +80,13 @@ export async function POST(req) {
   if (error) {
     return new Response(JSON.stringify({ message: error }), { status });
   }
-  
+
   // לאחר שהטוקן אושר, אפשר לבדוק אם למשתמש יש את ההרשאות המתאימות
-  if (decoded.role !== 'admin') {
-    return new Response(JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }), { status: 403 });
+  if (decoded.role !== "admin") {
+    return new Response(
+      JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }),
+      { status: 403 }
+    );
   }
 
   try {
@@ -87,6 +95,7 @@ export async function POST(req) {
 
     const missingFields = [];
 
+    // השדות של החדר
     if (!file) {
       missingFields.push("אין תמונה");
     }
@@ -108,6 +117,7 @@ export async function POST(req) {
     const balcony = formData.get("balcony") === "true";
     const active = true;
 
+    // בודק אם כל השדות קיימים
     if (!roomNumber) missingFields.push("חסר מספר חדר");
     if (!roomType) missingFields.push("חסר סוג חדר");
     if (!price) missingFields.push("חסר מחיר");
@@ -160,6 +170,7 @@ export async function POST(req) {
 
     const { secure_url } = uploadResponse;
 
+    // בודק אם מספר החדר כבר קיים במערכת
     const existingRoom = await Room.findOne({ roomNumber });
     if (existingRoom) {
       return new Response(JSON.stringify({ message: "החדר כבר קיים במערכת" }), {
@@ -167,6 +178,7 @@ export async function POST(req) {
       });
     }
 
+    // אם החדר לא קיים, יוצר חדר חדש
     const newRoom = await Room.create({
       roomNumber,
       roomType,
@@ -205,12 +217,14 @@ export async function PUT(req) {
   if (error) {
     return new Response(JSON.stringify({ message: error }), { status });
   }
-  
-  // לאחר שהטוקן אושר, אפשר לבדוק אם למשתמש יש את ההרשאות המתאימות
-  if (decoded.role !== 'admin') {
-    return new Response(JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }), { status: 403 });
-  }
 
+  // לאחר שהטוקן אושר, אפשר לבדוק אם למשתמש יש את ההרשאות המתאימות
+  if (decoded.role !== "admin") {
+    return new Response(
+      JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }),
+      { status: 403 }
+    );
+  }
 
   try {
     const formData = await req.formData();
@@ -347,12 +361,14 @@ export async function DELETE(req) {
   if (error) {
     return new Response(JSON.stringify({ message: error }), { status });
   }
-  
+
   // לאחר שהטוקן אושר, אפשר לבדוק אם למשתמש יש את ההרשאות המתאימות
-  if (decoded.role !== 'admin') {
-    return new Response(JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }), { status: 403 });
+  if (decoded.role !== "admin") {
+    return new Response(
+      JSON.stringify({ message: "אין לך הרשאות לבצע פעולה זו" }),
+      { status: 403 }
+    );
   }
-  
 
   try {
     const { roomId } = await req.json();

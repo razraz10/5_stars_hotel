@@ -3,6 +3,7 @@ import User from "@/app/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// רישום משתמש חדש
 export async function POST(req) {
   try {
     await dbConnect();
@@ -30,6 +31,7 @@ export async function POST(req) {
         return new Response(JSON.stringify({message: 'האימייל כבר קיים במערכת'}),{status: 400})
     }
 
+    // רק אם הוא מנהל הוא יכול להוסיף מנהלים אחרים
     if (role === "admin") {
       if (!token) {
         return new Response(JSON.stringify({ message: "אינך מחובר" }), { status: 401 });
@@ -48,6 +50,7 @@ export async function POST(req) {
       }
     }
 
+    // מסתיר סיסמה
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const newUser = await User.create({

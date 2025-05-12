@@ -40,9 +40,11 @@ export default function page() {
         setRooms(filter);
       });
   }, [user, router]);
-useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
+
   if (!user) return null;
 
   if (!rooms) {
@@ -65,8 +67,6 @@ useEffect(() => {
   const startIndex = (currentPage - 1) * roomsPerPage;
   const endIndex = startIndex + roomsPerPage;
   const paginatedRooms = rooms.slice(startIndex, endIndex);
-  
-  
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen" dir="rtl">
@@ -98,11 +98,11 @@ useEffect(() => {
                     <span>{room.view}</span>
                   </div>
 
-                  {room.availability === true && (
+                  {/* {room.availability === true && (
                     <div className="text-green-600 font-semibold">
                       זמין להזמנה
                     </div>
-                  )}
+                  )} */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4">
                     {room.airConditioning === true && (
@@ -194,7 +194,7 @@ useEffect(() => {
           disabled={currentPage === 1}
           className="text-xl cursor-pointer disabled:opacity-40"
         >
-          <ChevronsRight color="#055ff0"/>
+          <ChevronsRight color="#055ff0" />
         </button>
 
         {/* עמוד קודם */}
@@ -219,7 +219,7 @@ useEffect(() => {
           disabled={currentPage === totalPages}
           className="text-xl cursor-pointer disabled:opacity-40"
         >
-          <ChevronLeft color="#055ff0"/>
+          <ChevronLeft color="#055ff0" />
         </button>
 
         {/* לעמוד האחרון */}
@@ -228,7 +228,7 @@ useEffect(() => {
           disabled={currentPage === totalPages}
           className="text-xl cursor-pointer disabled:opacity-40"
         >
-          <ChevronsLeft color="#055ff0"/>
+          <ChevronsLeft color="#055ff0" />
         </button>
       </div>
     </div>

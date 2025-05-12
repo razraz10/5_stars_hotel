@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+//   של הבקשה  header-הפונקציה בודקת אם יש טוקן ב     
 export function verifyToken(req) {
   const authHeader = req.headers.get("authorization");
 

@@ -22,6 +22,7 @@ import GooglePayButton from "@google-pay/button-react";
 
 export default function page() {
   const [loading, setLoading] = useState(false);
+  const [loadingCheck, setLoadingCheck] = useState(false);
 
   const [isRoomAvailable, setIsRoomAvailable] = useState(false);
 
@@ -62,6 +63,7 @@ export default function page() {
     }
 
     try {
+      setLoadingCheck(true);
       const checkInDate = startDate;
       const checkOutDate = endDate;
       await axiosSelf.post(`/rooms/${id}`, {
@@ -73,6 +75,7 @@ export default function page() {
       toast.success("לשמחתינו החדר פנוי בתאריכים האלה");
       setIsRoomAvailable(true);
     } catch (error) {
+      setLoadingCheck(false);
       console.error(error);
       toast.error(error?.response?.data?.message || "שגיאה בהזמנה");
     }
@@ -162,11 +165,11 @@ export default function page() {
                 alt={room?.roomType}
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              {room?.availability && (
+              {/* {room?.availability && (
                 <div className="absolute top-4 left-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium">
                   זמין להזמנה
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Content Section */}
@@ -337,7 +340,7 @@ export default function page() {
                       onClick={handleCheckRooms}
                       className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 mt-4"
                     >
-                      {loading ? "בודק לך..." : "בדוק זמינות"}
+                      {loadingCheck ? "בודק לך..." : "בדוק זמינות"}
                     </button>
                   )}
                 </div>

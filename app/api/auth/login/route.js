@@ -3,6 +3,7 @@ import User from "@/app/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// ביצוע התחברות למערכת
 export async function POST(req) {
   try {
     await dbConnect();
@@ -18,22 +19,23 @@ export async function POST(req) {
     if (!isPasswordCorrect) {
       return Response.json({ message: "סיסמה לא נכונה" }, { status: 400 });
     }
-
+    // יצירת טוקן גישה
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+    // יצירת טוקן רענון
     const refreshToken = jwt.sign(
       { userId: user._id },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
-
+    // החזרת הטוקן למשתמש
     return new Response(JSON.stringify({ user, token: token }), {
       status: 200,
       headers: {
-        "Set-Cookie": `refreshToken=${refreshToken}; HttpOnly; Path=/api/auth/refresh; Max-Age=604800; SameSite=Strict`,
+        "Set-Cookie": `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`,
       },
     });
   } catch (error) {

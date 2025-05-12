@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "@/app/models/User";
 import { dbConnect } from "@/app/lib/db";
 
+// טוקן רענון - טוקן שמאפשר למשתמש לקבל טוקן גישה חדש מבלי להיכנס מחדש
 export async function GET(req) {
   await dbConnect();
   const refreshToken = req.cookies.get("refreshToken")?.value;
@@ -14,7 +15,8 @@ export async function GET(req) {
 
     if (!user) return Response.json({ message: "משתמש לא נמצא" }, { status: 404 });
 
-    const newAccessToken = jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    // מביא טוקן גישה חדש
+    const newAccessToken = jwt.sign({ userId: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     return Response.json({ token: newAccessToken, user }, { status: 200 });
   } catch (err) {

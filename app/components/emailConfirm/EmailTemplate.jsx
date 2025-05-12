@@ -231,7 +231,7 @@ export default function EmailTemplate({
                   מיקום
                 </p>
                 <p style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
-                  רחוב העושר 100
+                רחוב הים 123, תל אביב
                 </p>
               </div>
             </div>
@@ -465,7 +465,7 @@ export default function EmailTemplate({
               </div>
                 
                 <p style={{ margin: 0, fontSize: "24px" }}>
-                  support@booking.co.il
+                info@luxury-hotel.com
                 </p>
               </div>
 

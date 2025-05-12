@@ -4,6 +4,7 @@ import Booking from "@/app/models/Booking";
 import Counter from "@/app/models/Counter";
 import Room from "@/app/models/Room";
 
+//  id-להביא חדר ספציפי לפי ה 
 export async function GET(req, context) {
   await dbConnect();
 
@@ -24,6 +25,7 @@ export async function GET(req, context) {
   }
 }
 
+// להזמין חדר
 export async function POST(req, { params }) {
   await dbConnect();
 
@@ -37,10 +39,10 @@ export async function POST(req, { params }) {
   const body = await req.json();
   const { checkInDate, checkOutDate } = body;
 
-  // console.log(decoded);
   const userId = decoded.userId;
 
   try {
+    // האם התאריכים של ההזמנה עברו כבר
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -57,6 +59,7 @@ export async function POST(req, { params }) {
       );
     }
 
+    // בודק האם אפשר להזמין את החדר בתאריכים האלו
     const overlappingBooking = await Booking.findOne({
       room: roomId,
       isActive: true,
@@ -78,6 +81,7 @@ export async function POST(req, { params }) {
       );
     }
 
+    // עושה מספר הזמנה
     const counter = await Counter.findOneAndUpdate(
       { name: "booking" },
       { $inc: { seq: 1 } },
@@ -87,6 +91,8 @@ export async function POST(req, { params }) {
     const formattedBookingNumber = `BK-${currentYear}-${counter.seq
       .toString()
       .padStart(4, "0")}`;
+
+      // הזמנת החדר
     const newBooking = new Booking({
       bookingNumber: formattedBookingNumber,
       user: userId,

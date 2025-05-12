@@ -1,20 +1,22 @@
 import { create } from "zustand";
-import Cookies from "js-cookie";  // Import js-cookie
+import Cookies from "js-cookie";  
 import axios from "axios";
 
 export const useAuthStore = create((set) => ({
-  // Initialize user and token from cookies if available
+  // בודק אם יש קוקיז עם פרטי משתמש וטוקן 
   user: Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null,
   token: Cookies.get("token") || null,
 
-  // Login function to store user and token in cookies
+  // בלחיצה על כפתור התחברות, שומר את פרטי המשתמש והטוקן בקוקיז
+  // ומעדכן את הסטייט של המשתמש והטוקן
   login: (user, token) => {
-    Cookies.set("user", JSON.stringify(user)); // Save user to cookie
-    Cookies.set("token", token); // Save token to cookie
+    Cookies.set("user", JSON.stringify(user)); 
+    Cookies.set("token", token); 
     set({ user, token });
   },
 
-  // Logout function to remove user and token from cookies
+  // בלחיצה על כפתור התנתקות, מוחק את הקוקיז של המשתמש והטוקן
+  // null-ומעדכן את הסטייט של המשתמש והטוקן ל        
   logout: async () => {
     await axios.post("/api/auth/logout");
     Cookies.remove("user");
@@ -22,9 +24,11 @@ export const useAuthStore = create((set) => ({
     set({ user: null, token: null });
   },
 
+  // רענון טוקן - שולח בקשה לשרת לרענון הטוקן
+  // אם הבקשה מצליחה, מעדכן את הקוקיז ואת הסטייט של המשתמש והטוקן
   refreshToken: async () => {
     try {
-      const { data } = await axios.get("/api/auth/refresh");
+      const { data } = await axios.post("/api/auth/refresh");
       Cookies.set("token", data.token);
       set({ token: data.token, user: data.user });
       return data.token;
@@ -35,28 +39,17 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  // עידכון טוקן - מעדכן את הקוקיז ואת הסטייט של הטוקן
+  // אם יש טוקן חדש, מעדכן את הקוקיז ואת הסטייט של הטוקן
   updateToken: (newToken) => {
     Cookies.set("token", newToken);
     set({ token: newToken });
   },
 
-  // Update user function to save updated user to both state and cookie
+  // מעדכן את פרטי המשתמש בקוקיז ובסטייט
   updateUser: (updateUser) => set((state) => {
     const updatedUser = { ...state.user, ...updateUser };
     Cookies.set("user", JSON.stringify(updatedUser)); // Update user cookie
     return { user: updatedUser };
   })
 }));
-
-
-// import { create } from "zustand";
-
-// export const useAuthStore = create((set) => ({
-//   user: null,
-//   token: null,
-//   login: (user, token) => set({ user, token  }),
-//   logout: () => set({ user: null, token: null }),
-//   updateUser: (updateUser) => set((state)=>({
-//     user: {...state.user, ...updateUser}
-//   }))
-// }));

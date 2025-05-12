@@ -4,6 +4,7 @@ import Booking from "@/app/models/Booking";
 import Room from "@/app/models/Room";
 import User from "@/app/models/User";
 
+// להביא הזמנה לפי מספר
 export async function GET(req) {
   await dbConnect();
 
@@ -24,6 +25,8 @@ export async function GET(req) {
     const order = await Booking.findOne({ bookingNumber: orderNumber })
       .populate("room")
       .populate("user");
+      console.log(order);
+      
 
     if (!order) {
       errorsOrder.push("לא נמצא הזמנה עם המספר הזה");
@@ -44,6 +47,7 @@ export async function GET(req) {
   }
 }
 
+// עידכון הזמנה
 export async function POST(req) {
   const { decoded, error, status } = verifyToken(req);
   if (error) {
@@ -83,6 +87,7 @@ export async function POST(req) {
       });
     }
 
+    // בדוק אם ההזמנה שייכת למשתמש הנוכחי או אם הוא מנהל
     const isOwner = decoded.role === "user";
     const isAdmin = decoded.role === "admin";
     if (!isOwner && !isAdmin) {
@@ -152,6 +157,7 @@ export async function POST(req) {
   }
 }
 
+// מחיקת הזמנה
 export async function DELETE(req) {
   const { decoded, error, status } = verifyToken(req);
   if (error) {

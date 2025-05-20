@@ -23,7 +23,7 @@ export default function page() {
   const [loadingRoomId, setLoadingRoomId] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const roomsPerPage = 2;
+  const roomsPerPage = 4;
 
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
@@ -32,13 +32,14 @@ export default function page() {
     if (!user) {
       router.push("/login");
     }
-
-    fetch("/api/rooms")
-      .then((res) => res.json()) // ממיר את התגובה ל-JSON
-      .then((data) => {
-        const filter = data.filter((room) => room.active === true);
-        setRooms(filter);
-      });
+    if (user) {
+      fetch("/api/rooms")
+        .then((res) => res.json()) // ממיר את התגובה ל-JSON
+        .then((data) => {
+          const filter = data.filter((room) => room.active === true);
+          setRooms(filter);
+        });
+    }
   }, [user, router]);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function page() {
 
   if (!rooms) {
     return (
-      <div className="p-6 flex-col items-center justify-center text-center">
+      <div className="p-6 flex-col pt-24 min-h-screen items-center justify-center text-center">
         <div className="text-4xl">טוען חדרים</div>
         <div className="flex items-center justify-center">
           <Image
@@ -69,7 +70,7 @@ export default function page() {
   const paginatedRooms = rooms.slice(startIndex, endIndex);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen" dir="rtl">
+    <div className="p-6 bg-blue-100 pt-24 min-h-screen" dir="rtl">
       <h1 className="text-3xl font-bold text-center mb-8">🏨 רשימת החדרים</h1>
 
       <div className="max-w-7xl mx-auto grid gap-6">
@@ -170,14 +171,19 @@ export default function page() {
                   )}
                 >
                   {loadingRoomId == room._id ? (
-                    <Image
-                      src={"/waiting-7579_256.gif"}
-                      width={40}
-                      height={40}
-                      alt="loading"
-                    />
+                    <span className="flex items-center justify-center gap-2">
+                      טוען חדר...
+                      <Image
+                        src={"/waiting-7579_256.gif"}
+                        width={30}
+                        height={30}
+                        alt="wait"
+                      />
+                    </span>
                   ) : (
-                    <>{" הזמנת חדר"}</>
+                    <span className="flex items-center justify-center gap-2">
+                      הזמנת חדר
+                    </span>
                   )}
                 </button>
               </div>

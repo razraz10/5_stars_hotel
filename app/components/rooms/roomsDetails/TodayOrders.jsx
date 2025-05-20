@@ -6,11 +6,11 @@ export default function TodayOrders() {
     const [rooms, setRooms] = useState([]);
   const getTodayOrders = async () => {
     try {
-      const response = await axiosSelf.get(`/rooms`);
+      const response = await axiosSelf.get(`/rooms/bookedToday`);
     //   console.log(response);
       const data = response.data;
-      const filter = data.filter((room) => room.availability === false);
-      setRooms(filter);
+      // const filter = data.filter((room) => room.availability === false);
+      setRooms(data);
     } catch (error) {
       console.error(error);
     }

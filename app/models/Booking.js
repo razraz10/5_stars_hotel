@@ -7,6 +7,7 @@ const BookingSchema = new mongoose.Schema(
     room: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
     checkInDate: { type: Date, required: true },
     checkOutDate: { type: Date, required: true },
+    totalPrice: { type: String, required: true },
     isActive: { type: Boolean, default: true }, // הוספת שדה isActive
     isDeleted: { type: Boolean, default: false }, // הוספת שדה isActive
     status: {

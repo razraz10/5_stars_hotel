@@ -13,8 +13,19 @@ import Image from "next/image";
 import clsx from "clsx";
 
 export default function BookingHistory({ bookedRooms }) {
-    const [bookedRoomsData, setBookedRoomsData] = useState(bookedRooms);
-  const activeRooms = bookedRoomsData?.filter((room) => room.isActive === false) || [];
+  const [bookedRoomsData, setBookedRoomsData] = useState(
+    bookedRooms?.filter(room => {
+      const checkOutDate = new Date(room.checkOutDate);
+      const now = new Date();
+      return checkOutDate < now;
+    }).map(room => ({
+      ...room,
+      checkInDate: new Date(room.checkInDate).toISOString(),
+      checkOutDate: new Date(room.checkOutDate).toISOString()
+    }))
+  );
+  console.log(bookedRoomsData, "ggg");
+  
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
@@ -22,7 +33,7 @@ export default function BookingHistory({ bookedRooms }) {
          היסטוריית החדרים שהזמנת
       </h2>
 
-      {activeRooms.length === 0 ? (
+      {bookedRoomsData.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
           <BedDouble size={48} className="mx-auto text-gray-400 mb-4" />
           <p className="text-gray-600 font-medium">לא נמצא היסטוריית הזמנות </p>
@@ -30,7 +41,7 @@ export default function BookingHistory({ bookedRooms }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {activeRooms.map((roomDetails, index) => {
+          {bookedRoomsData.map((roomDetails, index) => {
             return (
               <div
                 key={index}
@@ -43,9 +54,12 @@ export default function BookingHistory({ bookedRooms }) {
                     חדר מספר {roomDetails?.room?.roomNumber}
                   </h3>
                   <h3 className="font-medium">
-                    {" "}
                     מספר הזמנה {roomDetails?.bookingNumber}
                   </h3>
+                  <h3 className="flex gap-1  font-medium">
+                     שולם על הזמנה זו <div className="bg-white rounded-2xl w-10 text-center text-blue-900">{roomDetails?.totalPrice}</div> ש"ח
+                  </h3>
+                  
                 </div>
                 <div className="p-4 space-y-2">
                   <div className="w-full h-full">

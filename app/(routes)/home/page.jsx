@@ -8,12 +8,12 @@ export default function page() {
       <div className="min-h-screen bg-white" dir="rtl">
       {/* Hero Section */}
       <div 
-        className="relative h-[600px] bg-cover bg-center"
+        className="relative h-[600px]  bg-cover bg-center"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")'
+          backgroundImage: 'url("/homePage.avif")'
         }}
       >
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 " />
         </div>
         <div className="py-16 px-6">
         <div className="max-w-6xl mx-auto">

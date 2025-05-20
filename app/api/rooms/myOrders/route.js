@@ -26,6 +26,7 @@ export async function GET(req) {
       },
       {
         $set: { isActive: false },
+        status: "completed",
       }
     );
     // שליפת ההזמנות של המשתמש שלא נמחקו ולא עברו תאריך צ'ק אאוט
@@ -33,14 +34,22 @@ export async function GET(req) {
       user: userId,
       isDeleted: false,
       // checkOutDate: { $gte: now } 
-    }).populate("room").populate("user");
+    }).populate("room").populate("user").lean();
 
-    return new Response(JSON.stringify(bookings), { status: 200 });
+    const processedBookings = bookings.map(booking => ({
+      ...booking,
+      checkInDate: new Date(booking.checkInDate).toISOString(),
+      checkOutDate: new Date(booking.checkOutDate).toISOString(),
+      createdAt: new Date(booking.createdAt).toISOString(),
+      updatedAt: new Date(booking.updatedAt).toISOString()
+    }));
+
+    return new Response(JSON.stringify(processedBookings), { status: 200 });
   } catch (err) {
-    console.error("JWT Error:", err);
+    console.error("Error:", err);
     return new Response(
-      JSON.stringify({ message: "שגיאה ב-token", error: err.message }),
-      { status: 401 }
+      JSON.stringify({ message: "שגיאה בטעינת ההזמנות", error: err.message }),
+      { status: 500 }
     );
   }
 }

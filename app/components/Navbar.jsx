@@ -3,27 +3,21 @@ import Link from "next/link";
 import { useAuthStore } from "../store/authStore";
 import { LogIn, LogOut, User, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Navbar() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     router.push("/login");
   };
 
-  // const [isClient, setIsClient] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // useEffect(() => {
-  //   setIsClient(true);
-  // }, []);
-
   return (
-    <nav className="bg-blue-600 p-4 shadow-md sticky top-0 z-40">
+    <nav className="bg-blue-600 p-4 shadow-md fixed w-full top-0 z-40">
       <div className="  flex justify-between items-center relative">
         <h1 className="text-white text-2xl font-bold">🏨 MyHotel</h1>
 
@@ -59,7 +53,7 @@ export default function Navbar() {
                 </Link>
               </div>
 
-              { !user?.role ? (
+              { !user ? (
                 <Link
                   href="/login"
                   onClick={() => setIsMenuOpen(false)}
@@ -69,7 +63,7 @@ export default function Navbar() {
                   התחברות
                 </Link>
               ) : (
-                user?.role && (
+                
                   <div className="flex flex-col space-y-1">
                     <Link href="/personal" onClick={() => setIsMenuOpen(false)}>
                       <div className="flex bg-gray-500 rounded-full px-3 py-1  text-black justify-end items-center gap-2">
@@ -89,7 +83,7 @@ export default function Navbar() {
                       <LogOut />
                     </button>
                   </div>
-                )
+                
               )}
             </div>
           )}
@@ -104,7 +98,7 @@ export default function Navbar() {
             חדרים
           </Link>
 
-          { !user?.role ? (
+          { !user ? (
             <Link
               href="/login"
               className="text-white bg-green-300 p-1 rounded-full"
@@ -112,7 +106,7 @@ export default function Navbar() {
               <LogIn />
             </Link>
           ) : (
-            user?.role && (
+             
               <div className="flex gap-2">
                 <button
                   onClick={handleLogout}
@@ -127,7 +121,7 @@ export default function Navbar() {
                   </div>
                 </Link>
               </div>
-            )
+            
           )}
         </div>
       </div>

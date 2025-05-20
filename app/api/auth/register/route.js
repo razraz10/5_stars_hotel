@@ -11,7 +11,7 @@ export async function POST(req) {
     const { firstName, lastName, email, password, role } = await req.json();
     // קריאה לטוקן מה-Headers:
     const token = req.headers.get("authorization")?.split(" ")[1];
-    console.log(token);
+    // console.log(token);
     
     // בדיקת אימייל
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,7 +32,7 @@ export async function POST(req) {
     }
 
     // רק אם הוא מנהל הוא יכול להוסיף מנהלים אחרים
-    if (role === "admin") {
+    if (role === "admin" || role === "user") {
       if (!token) {
         return new Response(JSON.stringify({ message: "אינך מחובר" }), { status: 401 });
       }
@@ -46,7 +46,7 @@ export async function POST(req) {
       
       const adminUser = await User.findById(decoded.userId);
       if (!adminUser || adminUser.role !== "admin") {
-        return new Response(JSON.stringify({ message: "אין לך הרשאה ליצור מנהלים" }), { status: 403 });
+        return new Response(JSON.stringify({ message: "אין לך הרשאה ליצור משתמשים" }), { status: 403 });
       }
     }
 

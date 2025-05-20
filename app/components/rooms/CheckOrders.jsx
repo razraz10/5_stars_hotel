@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axiosSelf from "@/app/lib/axiosInstance";
-import { useRouter } from "next/navigation";
 
 export default function CheckOrders({
   orderData,
@@ -29,17 +28,26 @@ export default function CheckOrders({
   bookedRooms,
   setBookedRooms,
 }) {
-  const router = useRouter();
+
   const [formData, setFormData] = useState({
     bookingNumber: orderData.bookingNumber,
-    checkInDate: orderData.checkInDate?.slice(0, 10),
-    checkOutDate: orderData.checkOutDate?.slice(0, 10),
+    // המרת התאריכים לפורמט המקומי
+    checkInDate: new Date(orderData.checkInDate).toLocaleDateString('en-CA'),
+    checkOutDate: new Date(orderData.checkOutDate).toLocaleDateString('en-CA'),
     roomNumber: orderData.room.roomNumber,
   });
-
+ 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // המרת התאריך לפורמט המקומי
+    if (name === "checkInDate" || name === "checkOutDate") {
+      const date = new Date(value);
+      date.setHours(0, 0, 0, 0);
+      setFormData((prev) => ({ ...prev, [name]: date.toLocaleDateString('en-CA') }));}
+      else{
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
   };
 
   const changeOrder = async () => {

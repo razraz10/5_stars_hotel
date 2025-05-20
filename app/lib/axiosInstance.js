@@ -37,15 +37,28 @@ axiosSelf.interceptors.response.use(
         const res = await axios.post("/api/auth/refresh", {}, { withCredentials: true });
         const newToken = res.data.token;
 
+        // עדכון הקוקיז והסטייט
         Cookies.set("token", newToken);
-        useAuthStore.getState().updateToken(newToken);
+        Cookies.set("tokenExpiryTime", new Date().getTime() + 55 * 60 * 1000);
+        
+        if (res.data.user) {
+          Cookies.set("user", JSON.stringify(res.data.user));
+        }
+
+        useAuthStore.getState().login(res.data.user, newToken);
 
         // עדכון הכותרת עם הטוקן החדש
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axios(originalRequest);
       } catch (refreshError) {
         // אם רענון הטוקן נכשל, מבצעים התנתקות
+         // ניקוי קוקיז והתנתקות
+         Cookies.remove("token");
+         Cookies.remove("user");
+         Cookies.remove("tokenExpiryTime");
+
         useAuthStore.getState().logout();
+        // הפניית המשתמש לדף ההתחברות
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }

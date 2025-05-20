@@ -27,7 +27,7 @@ export async function POST(req, { params }) {
       const checkOut = new Date(checkOutDate);
   
       if (checkIn < today || checkOut < today) {
-        missingFields.push("התאריכים עברו כבר");
+        // missingFields.push("התאריכים עברו כבר");
         return new Response(
           JSON.stringify({
             message: "לא ניתן להזמין תאריכים שעברו",

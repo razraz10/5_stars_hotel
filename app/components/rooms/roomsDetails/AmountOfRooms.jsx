@@ -2,7 +2,7 @@ import axiosSelf from "@/app/lib/axiosInstance";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-export default function NumberOfRoom() {
+export default function AmountOfRooms() {
   const [rooms, setRooms] = useState([]);
   const getRooms = async () => {
     try {

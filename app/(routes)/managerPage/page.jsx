@@ -20,16 +20,21 @@ import {
   SearchCheck,
 } from "lucide-react";
 import AddNewManager from "@/app/components/rooms/AddNewManager";
-import NumberOfRoom from "@/app/components/rooms/roomsDetails/NumberOfRoom";
 import OccupiedRooms from "@/app/components/rooms/roomsDetails/OccupiedRooms";
 import TodayOrders from "@/app/components/rooms/roomsDetails/TodayOrders";
 import CheckOrders from "@/app/components/rooms/CheckOrders";
 import axiosSelf from "@/app/lib/axiosInstance";
+import AddBtns from "@/app/components/admin/AddBtns";
+import AdminSearchInputs from "@/app/components/admin/AdminSearchInputs";
+import Income from "@/app/components/rooms/roomsDetails/Income";
+import AmountOfRooms from "@/app/components/rooms/roomsDetails/AmountOfRooms";
+import RoomAvailability from "@/app/components/rooms/roomsDetails/RoomAvailability";
+import AllRoomsAvailability from "@/app/components/rooms/roomsDetails/AllRoomsAvailability";
 
 export default function page() {
   // פופאפ לחדר חדש
   const [addRoom, setAddRoom] = useState(false);
-  // פופאפ לחדר חדש
+  // פופאפ להופת משתמש/מנהל חדש
   const [addManager, setAddManager] = useState(false);
   // המידע לעריכת חדר
   const [updateRoomData, setUpdateRoomData] = useState(null);
@@ -41,10 +46,14 @@ export default function page() {
   const [orderData, setOrderData] = useState(null);
   // פופאפ להזמנת חדר
   const [checkOrder, setCheckOrder] = useState(false);
+  // טעינת חדר
+  const [loadingUpdateRoom, setLoadingUpdateRoom] = useState(false);
+  // טעינת הזמנה
+const [loadingOrderCheck, setLoadingOrderCheck] =useState(false);
   // מספר ההזמנה לבדיקה
   const [orderNumber, setOrderNumber] = useState("");
 
-  // בודק אם הוא מנהל יש לו הראה לדף
+  // בודק אם הוא מנהל יש לו הרשאה לדף
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
 
@@ -60,23 +69,25 @@ export default function page() {
   };
 
   // פופאפ להוספת מנהל חדש
-  const handleAddManagerClick = () => {
-    setAddManager(true);
+  const handleAddManagerClick = (type) => {
+    setAddManager(type);
   };
 
   // פופאפ לחיפוש חדר
   const handleUpdateRoomClick = async () => {
     try {
+      setLoadingUpdateRoom(true);
       const response = await axiosSelf.get(
         `/rooms/addRoom?roomNumber=${roomNumber}`
       );
       const data = response.data;
-      console.log(data);
       if (data.active === false) toast.error("החדר כרגע מחוק מהמערכת");
       setUpdateRoomData(data);
       setUpdateRoom(true);
       setRoomNumber("");
+      setLoadingUpdateRoom(false);
     } catch (error) {
+      setLoadingUpdateRoom(false);
       if (error.response) {
         const { message, errors } = error.response.data;
         if (errors && Array.isArray(errors)) {
@@ -96,16 +107,18 @@ export default function page() {
   // פופאפ לחיפוש הזמנה
   const handleOrderCheckClick = async () => {
     try {
+      setLoadingOrderCheck(true);
       const response = await axiosSelf.get(
         `/rooms/checkOrders?bookingNumber=${orderNumber}`
       );
       const data = response.data;
       console.log(data);
-      // if (data.active === false) toast.error("החדר כרגע מחוק מהמערכת");
       setOrderData(data);
       setCheckOrder(true);
       setOrderNumber("");
+      setLoadingOrderCheck(false);
     } catch (error) {
+      setLoadingOrderCheck(false);
       if (error.response) {
         const { message, errors } = error.response.data;
         if (errors && Array.isArray(errors)) {
@@ -122,127 +135,127 @@ export default function page() {
     }
   };
 
+  const buttons = [
+    {
+      onClick: () => handleAddManagerClick("manager"),
+      icon: UserPlus,
+      title: "הוספת מנהל",
+      description: "הוסף מנהל חדש למערכת",
+      bgColor: "bg-green-100",
+      textColor: "text-green-600",
+      hoverColor: "bg-green-600",
+      hoverText: "text-white",
+    },
+    {
+      onClick: () => handleAddManagerClick("user"),
+      icon: UserPlus,
+      title: "הוספת משתמש",
+      description: "הוסף משתמש חדש למערכת",
+      bgColor: "bg-green-100",
+      textColor: "text-green-600",
+      hoverColor: "bg-green-600",
+      hoverText: "text-white",
+    },
+    {
+      onClick: handleAddRoomClick,
+      icon: PlusCircle,
+      title: "הוספת חדר חדש",
+      description: "הוסף חדר חדש למלון",
+      bgColor: "bg-blue-100",
+      textColor: "text-blue-600",
+      hoverColor: "bg-blue-600",
+      hoverText: "text-white",
+    },
+  ];
+
+  const cards = [
+    {
+      icon: Edit3,
+      title: "עריכת חדר",
+      placeholder: "מספר חדר לעריכה",
+      inputType: "number",
+      value: roomNumber,
+      onChange: (e) => setRoomNumber(e.target.value),
+      onClick: handleUpdateRoomClick,
+      loading: loadingUpdateRoom,
+    },
+    {
+      icon: SearchCheck,
+      title: "בדיקת הזמנות",
+      placeholder: "מספר הזמנה לבדיקה",
+      inputType: "text",
+      value: orderNumber,
+      onChange: (e) => setOrderNumber(e.target.value),
+      onClick: handleOrderCheckClick,
+      loading: loadingOrderCheck,
+    },
+  ];
+
   return (
-    <div className="flex h-screen bg-gray-100" dir="rtl">
+    <div className="flex min-h-screen pt-20 bg-blue-100" dir="rtl">
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm">
+        <header className="bg-yellow-200 shadow-sm">
           <div className="flex items-center justify-between px-8 py-6">
             <h2 className="text-2xl font-bold">לוח בקרת מנהלים</h2>
-            <div className="flex items-center gap-4">
-              {/* <div className="relative">
-                <input
-                  type="text"
-                  placeholder="חיפוש..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <Search
-                  className="absolute right-3 top-2.5 text-gray-400"
-                  size={20}
-                />
-              </div> */}
-            </div>
           </div>
         </header>
 
         <main className="p-8">
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <button
-              onClick={handleAddRoomClick}
-              className="flex items-center gap-4 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition group"
-            >
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition">
-                <PlusCircle size={24} />
-              </div>
-              <div className="text-right">
-                <h3 className="text-lg font-semibold">הוספת חדר חדש</h3>
-                <p className="text-gray-500">הוסף חדר חדש למלון</p>
-              </div>
-            </button>
+            {/* הוספת מנהל, הוספת משתמש, הוספת חדר */}
+            {buttons.map((button, index) => (
+              <AddBtns
+                key={index}
+                onClick={button.onClick}
+                icon={button.icon}
+                title={button.title}
+                description={button.description}
+                bgColor={button.bgColor}
+                textColor={button.textColor}
+                hoverColor={button.hoverColor}
+                hoverText={button.hoverText}
+              />
+            ))}
 
-            <button
-              onClick={handleAddManagerClick}
-              className="flex items-center gap-4 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition group"
-            >
-              <div className="p-3 bg-green-100 text-green-600 rounded-lg group-hover:bg-green-600 group-hover:text-white transition">
-                <UserPlus size={24} />
-              </div>
-              <div className="text-right">
-                <h3 className="text-lg font-semibold">הוספת מנהל</h3>
-                <p className="text-gray-500">הוסף מנהל חדש למערכת</p>
-              </div>
-            </button>
-
-            <div className="p-6 bg-white rounded-xl shadow-sm">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
-                  <Edit3 size={24} />
-                </div>
-                <h3 className="text-lg font-semibold">עריכת חדר</h3>
-              </div>
-              <div className="space-y-3">
-                <input
-                  type="number"
-                  className="w-full px-4 py-2 border text-right [&::-webkit-inner-spin-button]:appearance-none border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  placeholder="מספר חדר לעריכה"
-                  maxLength={8}
-                  value={roomNumber}
-                  onChange={(e) => setRoomNumber(e.target.value)}
-                />
-                <button
-                  onClick={handleUpdateRoomClick}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition"
-                >
-                  חיפוש
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 bg-white rounded-xl shadow-sm">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
-                  <SearchCheck size={24} />
-                </div>
-                <h3 className="text-lg font-semibold">בדיקת הזמנות</h3>
-              </div>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border text-right [&::-webkit-inner-spin-button]:appearance-none border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  placeholder="מספר הזמנה לבדיקה"
-                  value={orderNumber}
-                  onChange={(e) => setOrderNumber(e.target.value)}
-                />
-                <button
-                  onClick={handleOrderCheckClick}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition"
-                >
-                  חיפוש
-                </button>
-              </div>
-            </div>
+            {/* עריכת חדר, בדיקת הזמנות */}
+            {cards.map((card, index) => (
+              <AdminSearchInputs
+                key={index}
+                icon={card.icon}
+                title={card.title}
+                placeholder={card.placeholder}
+                inputType={card.inputType}
+                value={card.value}
+                onChange={card.onChange}
+                onClick={card.onClick}
+                loading={card.loading}
+              />
+            ))}
           </div>
 
+            <RoomAvailability/>
+
+            <AllRoomsAvailability/>
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <NumberOfRoom />
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-6">
+            {/* מספר חדרים */}
+            <AmountOfRooms />
+            {/* כמה חדרים תפוסים בתאריכים מסוימים */}
             <OccupiedRooms />
+            {/* הזמנות היום */}
             <TodayOrders />
-            <NumberOfRoom />
-            {/* {[
-            { title: 'סך הכל חדרים', value: '50', change: '+2 החודש' },
-            { title: 'חדרים תפוסים', value: '35', change: '70% תפוסה' },
-            { title: 'הזמנות היום', value: '12', change: '+3 מאתמול' },
-            { title: 'הכנסה חודשית', value: '₪85,000', change: '+15% מהחודש שעבר' }
-          ].map((stat, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-xl shadow-sm">
-              <h3 className="text-gray-500 mb-2">{stat.title}</h3>
-              <p className="text-2xl font-bold mb-2">{stat.value}</p>
-              <p className="text-sm text-green-600">{stat.change}</p>
-            </div>
-          ))} */}
+            {/* הכנסה חודשית */}
+            {/* <Income /> */}
+            
           </div>
+          
+           
+            {/* הכנסה חודשית */}
+            <Income />
+            
+         
         </main>
       </div>
 
@@ -256,7 +269,7 @@ export default function page() {
 
       {addManager && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/30 backdrop-blur-sm z-50">
-          <AddNewManager setAddManager={setAddManager} />
+          <AddNewManager setAddManager={setAddManager} type={addManager} />
         </div>
       )}
 

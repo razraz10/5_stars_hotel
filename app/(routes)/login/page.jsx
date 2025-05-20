@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useAuthStore } from "@/app/store/authStore";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import axiosSelf from "@/app/lib/axiosInstance";
@@ -16,10 +15,12 @@ export default function LoginRegister() {
     role: "user", 
   });
 
+  //  להתחבר
   const [isLogin, setIsLogin] = useState(true);
+  // טעינה
   const [loading, setLoading] = useState(false);
 
-  // להתחבר
+  //Zustand התחברות בזכות 
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
@@ -28,6 +29,7 @@ export default function LoginRegister() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // אינטרקציה עם מקש אנטר
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSubmit(); // בלי e כי זו קריאה רגילה, לא מהאירוע
@@ -36,12 +38,8 @@ export default function LoginRegister() {
 
   // שליחת טופס התחברות / רישום
   const handleSubmit = async () => {
-    // e.preventDefault();
     
-
-      setLoading(true);
-      
-  
+    setLoading(true);
       try {
         // אם כבר יש חשבון
         if (isLogin) {
@@ -51,7 +49,7 @@ export default function LoginRegister() {
             password: formData.password,
           });        
           login(data.user, data.token);
-          
+          useAuthStore.getState().startRefreshTimer(); // התחלת טיימר רענון
           toast.success('כעת הינך מחובר/ת')
         } else {
           // רישום משתמש חדש
@@ -75,6 +73,7 @@ export default function LoginRegister() {
         </h1>
 
         <div  className="flex flex-col space-y-4">
+          {/*  טופס רישום אם הוא לא רשום  */}
           {!isLogin && (
             <>
               <input
@@ -97,7 +96,7 @@ export default function LoginRegister() {
               />
             </>
           )}
-
+{/* אם יש חשבון */}
           <input
             type="email"
             name="email"

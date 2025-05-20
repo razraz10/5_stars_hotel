@@ -45,8 +45,17 @@ export default function page() {
     if (!user) {
       router.push("/login");
     }
-    fetchRoom();
+    if (user) {
+      fetchRoom();
+    }
   }, [id]);
+
+  const calculateTotalPrice = () => {
+    if (!startDate || !endDate) return 0; // אם אין תאריכים, המחיר הוא 0
+    const oneDay = 24 * 60 * 60 * 1000; // מספר המילישניות ביום
+    const diffDays = Math.round(Math.abs((endDate - startDate) / oneDay) +1); // חישוב מספר הימים
+    return diffDays * room.price; // הכפלת מספר הימים במחיר ללילה
+  };
 
   const handleCheckRooms = async () => {
     if (!startDate && !endDate) {
@@ -99,11 +108,20 @@ export default function page() {
       setLoading(true);
       const checkInDate = startDate;
       const checkOutDate = endDate;
+      // חישוב מספר הימים והמחיר הכולל
+      const oneDay = 24 * 60 * 60 * 1000; // מספר המילישניות ביום
+      const diffDays = Math.round(
+        Math.abs((checkOutDate - checkInDate) / oneDay) +1
+      ); 
+      // חישוב מספר הימים
+      const totalPrice = diffDays * room.price; // חישוב המחיר הכולל
+
       const savedBooking = await axiosSelf.post(`/roomId/${id}`, {
         userId: user._id,
         roomId: room.id,
         checkInDate: new Date(checkInDate),
         checkOutDate: new Date(checkOutDate),
+        totalPrice: totalPrice,
       });
       await axiosSelf.post(`/sendEmail`, {
         to: user.email,
@@ -112,7 +130,7 @@ export default function page() {
         bookingNumber: savedBooking.data.bookingNumber,
         checkInDate: savedBooking.data.checkInDate,
         checkOutDate: savedBooking.data.checkOutDate,
-        price: room.price,
+        price: totalPrice,
         roomType: room.roomType,
         view: room.view,
         imageUrl: room.imageUrl,
@@ -136,7 +154,7 @@ export default function page() {
 
   if (!room) {
     return (
-      <div className="p-6 flex-col items-center justify-center text-center">
+      <div className="p-6 flex-col pt-24 min-h-screen items-center justify-center text-center">
         <div className="text-4xl">טוען חדר</div>
         <div className="flex items-center justify-center">
           <Image
@@ -151,7 +169,7 @@ export default function page() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
+    <div className="pt-24 min-h-screen bg-blue-100" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -282,6 +300,12 @@ export default function page() {
                       />
                     </div>
                   </div>
+                  {/* סה"כ המחיר */}
+                  {startDate && endDate && (
+                    <div className="text-lg font-semibold text-gray-700">
+                      סה"כ לתאריכים שנבחרו: ₪{calculateTotalPrice()}
+                    </div>
+                  )}
                   {isRoomAvailable ? (
                     <>
                       <div className="mt-6 flex justify-center">
@@ -340,7 +364,21 @@ export default function page() {
                       onClick={handleCheckRooms}
                       className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 mt-4"
                     >
-                      {loadingCheck ? "בודק לך..." : "בדוק זמינות"}
+                      {loadingCheck ? (
+                        <span className="flex items-center justify-center gap-2">
+                          בודק לך...
+                          <Image
+                            src={"/waiting-7579_256.gif"}
+                            width={30}
+                            height={30}
+                            alt="wait"
+                          />
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          בדוק זמינות
+                        </span>
+                      )}
                     </button>
                   )}
                 </div>

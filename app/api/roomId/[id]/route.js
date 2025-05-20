@@ -37,7 +37,7 @@ export async function POST(req, { params }) {
   const { id: roomId } = params;
 
   const body = await req.json();
-  const { checkInDate, checkOutDate } = body;
+  const { checkInDate, checkOutDate, totalPrice } = body;
 
   const userId = decoded.userId;
 
@@ -99,6 +99,7 @@ export async function POST(req, { params }) {
       room: roomId,
       checkInDate,
       checkOutDate,
+      totalPrice
     });
 
     const savedBooking = await newBooking.save();

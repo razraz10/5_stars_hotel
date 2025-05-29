@@ -12,7 +12,7 @@ export default function LoginRegister() {
     lastName: "",
     email: "",
     password: "",
-    role: "user", 
+    role: "user",
   });
 
   //  להתחבר
@@ -20,7 +20,7 @@ export default function LoginRegister() {
   // טעינה
   const [loading, setLoading] = useState(false);
 
-  //Zustand התחברות בזכות 
+  //Zustand התחברות בזכות
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
@@ -38,31 +38,36 @@ export default function LoginRegister() {
 
   // שליחת טופס התחברות / רישום
   const handleSubmit = async () => {
-    
     setLoading(true);
-      try {
-        // אם כבר יש חשבון
-        if (isLogin) {
-          // התחברות
-          const { data } = await axiosSelf.post("/auth/login", {
-            email: formData.email,
-            password: formData.password,
-          });        
-          login(data.user, data.token);
-          useAuthStore.getState().startRefreshTimer(); // התחלת טיימר רענון
-          toast.success('כעת הינך מחובר/ת')
-        } else {
-          // רישום משתמש חדש
-          await axiosSelf.post("/auth/register", formData);
-          setIsLogin(true);
-          toast.success('נרשמת בהצלחה')
+    try {
+      // אם כבר יש חשבון
+      if (isLogin) {
+        // התחברות
+        const { data } = await axiosSelf.post("/auth/login", {
+          email: formData.email,
+          password: formData.password,
+        });
+        await login(data.user, data.token);
+        // useAuthStore.getState().startRefreshTimer(); // התחלת טיימר רענון
+        toast.success("כעת הינך מחובר/ת");
+      } else {
+        // רישום משתמש חדש
+        const registerResponse = await axiosSelf.post(
+          "/auth/register",
+          formData
+        );
+
+        if (registerResponse.data.user && registerResponse.data.token) {
+          // אם קיבלנו טוקן בהרשמה, נשתמש בו ישירות
+          await login(registerResponse.data.user, registerResponse.data.token);
+          toast.success("נרשמת והתחברת בהצלחה");
         }
-        router.push("/");
-      } catch (err) {
-        toast.error(err.response?.data?.message || "שגיאה לא ידועה");
-        setLoading(false);
-      } 
-    
+      }
+      router.push("/");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "שגיאה לא ידועה");
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,7 +77,7 @@ export default function LoginRegister() {
           {isLogin ? "התחברות 🔑" : "הרשמה 📝"}
         </h1>
 
-        <div  className="flex flex-col space-y-4">
+        <div className="flex flex-col space-y-4">
           {/*  טופס רישום אם הוא לא רשום  */}
           {!isLogin && (
             <>
@@ -96,7 +101,7 @@ export default function LoginRegister() {
               />
             </>
           )}
-{/* אם יש חשבון */}
+          {/* אם יש חשבון */}
           <input
             type="email"
             name="email"
@@ -133,7 +138,7 @@ export default function LoginRegister() {
           {isLogin ? "אין לך חשבון? הירשם כאן" : "כבר יש לך חשבון? התחבר כאן"}
         </p>
       </div>
-      <Toaster/>
+      <Toaster />
     </div>
   );
 }

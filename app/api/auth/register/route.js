@@ -10,8 +10,8 @@ export async function POST(req) {
 
     const { firstName, lastName, email, password, role } = await req.json();
     // קריאה לטוקן מה-Headers:
-    const token = req.headers.get("authorization")?.split(" ")[1];
-    // console.log(token);
+    const tokenCheck = req.headers.get("authorization")?.split(" ")[1];
+    // console.log(tokenCheck);
     
     // בדיקת אימייל
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,14 +32,14 @@ export async function POST(req) {
     }
 
     // רק אם הוא מנהל הוא יכול להוסיף מנהלים אחרים
-    if (role === "admin" || role === "user") {
-      if (!token) {
+    if (role === "admin") {
+      if (!tokenCheck) {
         return new Response(JSON.stringify({ message: "אינך מחובר" }), { status: 401 });
       }
       
       let decoded;
       try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = jwt.verify(tokenCheck, process.env.JWT_SECRET);
       } catch (err) {
         return new Response(JSON.stringify({ message: "טוקן לא תקין" }), { status: 401 });
       }
@@ -61,17 +61,29 @@ export async function POST(req) {
         role: role || 'user'
     })
 
-    if (role === "admin") {
-      const newToken = jwt.sign(
-        { userId: newUser._id, email: newUser.email, role: newUser.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-      return new Response(JSON.stringify({ user: newUser, token: newToken }), { status: 201 });
-    }
-    
+    // יצירת טוקן למשתמש החדש
+    const token = jwt.sign(
+      { userId: newUser._id, email: newUser.email, role: newUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-    return new Response(JSON.stringify(newUser), { status: 201 });
+    // החזרת המשתמש והטוקן
+    const userWithoutPassword = {
+      _id: newUser._id,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      role: newUser.role
+    };
+
+    return new Response(
+      JSON.stringify({ 
+        user: userWithoutPassword, 
+        token 
+      }), 
+      { status: 201 }
+    );
   } catch (error) {
     return new Response(
         JSON.stringify({ message: "שגיאה ביצירת משתמש", error: error.message }),

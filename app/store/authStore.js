@@ -20,11 +20,24 @@ export const useAuthStore = create((set) => ({
     Cookies.set("tokenExpiryTime", expiryTime.toString());
     set({ user, token, tokenExpiryTime: expiryTime });
 
-   // התחלת טיימר רענון
-   useAuthStore.getState().startRefreshTimer();
+   // בודקים שאכן נשמר
+    const savedToken = Cookies.get("token");
+    const savedExpiryTime = Cookies.get("tokenExpiryTime");
+
+    if (!savedToken || !savedExpiryTime) {
+      throw new Error("שגיאה בשמירת הטוקן");
+    }
+
+    // מפעילים את הטיימר רק אחרי שווידאנו שהכל נשמר
+    const intervalId = useAuthStore.getState().startRefreshTimer();
+    return intervalId;
   } catch (error) {
     console.error("שגיאה בשמירת נתוני התחברות:", error);
-    throw error;
+     Cookies.remove("token");
+    Cookies.remove("user");
+    Cookies.remove("tokenExpiryTime");
+    set({ user: null, token: null, tokenExpiryTime: null });
+    // throw error;
   }
   },
 
@@ -71,7 +84,7 @@ export const useAuthStore = create((set) => ({
       const currentToken = Cookies.get("token");
 
       if (!expiryTime || !currentToken) {
-        console.log("לא נמצא טוקן או זמן תפוגה");
+        console.log("לא נמצא טוקן או זמן תפוגה", { token:currentToken, expiryTime });
         return;
       }
 
@@ -83,9 +96,9 @@ export const useAuthStore = create((set) => ({
       }
     };
 
+    checkAndRefresh(); // בדיקה מיידית
     // בדיקה כל דקה
     const intervalId = setInterval(checkAndRefresh, 60 * 1000);
-    checkAndRefresh(); // בדיקה מיידית
     // מחזיר את ה-ID של ה-interval כדי שנוכל לנקות אותו מאוחר יותר אם נצטרך 
     return intervalId;
   },

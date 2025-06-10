@@ -26,7 +26,7 @@ export async function POST(req, { params }) {
       const checkIn = new Date(checkInDate);
       const checkOut = new Date(checkOutDate);
   
-      if (checkIn < today || checkOut < today) {
+      if (checkIn < today || checkOut <= today) {
         // missingFields.push("התאריכים עברו כבר");
         return new Response(
           JSON.stringify({

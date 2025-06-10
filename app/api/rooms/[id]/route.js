@@ -2,6 +2,7 @@ import { verifyToken } from "@/app/lib/auth/verifyToken";
 import { dbConnect } from "@/app/lib/db";
 import Booking from "@/app/models/Booking";
 import Room from "@/app/models/Room";
+import {fromZonedTime } from 'date-fns-tz';
 
 // בודק אם החדר פנוי בתאריכים שהמשתמש רוצה להזמין
 export async function POST(req, { params }) {
@@ -15,7 +16,7 @@ export async function POST(req, { params }) {
     const { id: roomId } = params;
   
     const body = await req.json();
-    const { checkInDate, checkOutDate } = body;
+    const { checkInDate, checkOutDate, timeZone } = body;
   
     // console.log(decoded);
     const userId = decoded.userId;
@@ -23,10 +24,12 @@ export async function POST(req, { params }) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
   
-      const checkIn = new Date(checkInDate);
-      const checkOut = new Date(checkOutDate);
+      // const checkIn = new Date(checkInDate);
+      // const checkOut = new Date(checkOutDate);
+      const checkIn = fromZonedTime(checkInDate, timeZone);
+const checkOut = fromZonedTime(checkOutDate, timeZone);
   
-      if (checkIn < today || checkOut <= today) {
+      if (checkIn < today || checkOut < today) {
         // missingFields.push("התאריכים עברו כבר");
         return new Response(
           JSON.stringify({

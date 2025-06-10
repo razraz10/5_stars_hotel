@@ -103,6 +103,7 @@ export default function page() {
       toast.error("יש לבחור תאריך סיום להזמנה");
       return;
     }
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     try {
       setLoading(true);
@@ -122,6 +123,7 @@ export default function page() {
         checkInDate: new Date(checkInDate),
         checkOutDate: new Date(checkOutDate),
         totalPrice: totalPrice,
+        timeZone,
       });
       await axiosSelf.post(`/sendEmail`, {
         to: user.email,

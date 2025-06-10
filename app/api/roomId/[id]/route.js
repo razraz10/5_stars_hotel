@@ -3,6 +3,7 @@ import { dbConnect } from "@/app/lib/db";
 import Booking from "@/app/models/Booking";
 import Counter from "@/app/models/Counter";
 import Room from "@/app/models/Room";
+import  {fromZonedTime }  from 'date-fns-tz';
 
 //  id-להביא חדר ספציפי לפי ה 
 export async function GET(req, context) {
@@ -37,7 +38,7 @@ export async function POST(req, { params }) {
   const { id: roomId } = params;
 
   const body = await req.json();
-  const { checkInDate, checkOutDate, totalPrice } = body;
+  const { checkInDate, checkOutDate, totalPrice, timeZone } = body;
 
   const userId = decoded.userId;
 
@@ -46,10 +47,11 @@ export async function POST(req, { params }) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const checkIn = new Date(checkInDate);
-    const checkOut = new Date(checkOutDate);
-
-    if (checkIn < today || checkOut <= today) {
+    // const checkIn = new Date(checkInDate);
+    // const checkOut = new Date(checkOutDate);
+  const checkIn = fromZonedTime(checkInDate, timeZone);
+const checkOut = fromZonedTime(checkOutDate, timeZone);
+    if (checkIn < today || checkOut < today) {
       missingFields.push("התאריכים עברו כבר");
       return new Response(
         JSON.stringify({

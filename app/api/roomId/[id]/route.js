@@ -3,9 +3,9 @@ import { dbConnect } from "@/app/lib/db";
 import Booking from "@/app/models/Booking";
 import Counter from "@/app/models/Counter";
 import Room from "@/app/models/Room";
-import  {fromZonedTime }  from 'date-fns-tz';
+import { fromZonedTime } from "date-fns-tz";
 
-//  id-להביא חדר ספציפי לפי ה 
+//  id-להביא חדר ספציפי לפי ה
 export async function GET(req, context) {
   await dbConnect();
 
@@ -44,14 +44,16 @@ export async function POST(req, { params }) {
 
   try {
     // האם התאריכים של ההזמנה עברו כבר
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const nowInZone = fromZonedTime(now, timeZone);
+    nowInZone.setHours(0, 0, 0, 0);
 
     // const checkIn = new Date(checkInDate);
     // const checkOut = new Date(checkOutDate);
-  const checkIn = fromZonedTime(checkInDate, timeZone);
-const checkOut = fromZonedTime(checkOutDate, timeZone);
-    if (checkIn < today || checkOut < today) {
+    //       const checkIn = fromZonedTime(checkInDate, timeZone);
+    // const checkOut = fromZonedTime(checkOutDate, timeZone);
+
+    if (checkInDate < now || checkOutDate < now) {
       missingFields.push("התאריכים עברו כבר");
       return new Response(
         JSON.stringify({
@@ -94,14 +96,14 @@ const checkOut = fromZonedTime(checkOutDate, timeZone);
       .toString()
       .padStart(4, "0")}`;
 
-      // הזמנת החדר
+    // הזמנת החדר
     const newBooking = new Booking({
       bookingNumber: formattedBookingNumber,
       user: userId,
       room: roomId,
       checkInDate,
       checkOutDate,
-      totalPrice
+      totalPrice,
     });
 
     const savedBooking = await newBooking.save();

@@ -70,16 +70,19 @@ export default function page() {
       toast.error("יש לבחור תאריך סיום להזמנה");
       return;
     }
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     try {
       setLoadingCheck(true);
       const checkInDate = startDate;
       const checkOutDate = endDate;
+      
       await axiosSelf.post(`/rooms/${id}`, {
         userId: user._id,
         roomId: room.id,
         checkInDate: new Date(checkInDate),
         checkOutDate: new Date(checkOutDate),
+        timeZone,
       });
       toast.success("לשמחתינו החדר פנוי בתאריכים האלה");
       setIsRoomAvailable(true);
@@ -116,7 +119,6 @@ const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       ); 
       // חישוב מספר הימים
       const totalPrice = diffDays * room.price; // חישוב המחיר הכולל
-
       const savedBooking = await axiosSelf.post(`/roomId/${id}`, {
         userId: user._id,
         roomId: room.id,

@@ -22,7 +22,7 @@ export async function POST(req) {
     // בדיקה אם המייל זהה למייל המאומת
     const authorizedEmail = "raziel1q2w3e@gmail.com";
 const emailToUse = process.env.NODE_ENV === "development" ? authorizedEmail : decoded.email;
-    const fromEmail = process.env.NODE_ENV === "development" ? "onboarding@resend.dev" : "best-hotel-razraz.com"; // Replace with your verified emai
+    const fromEmail = process.env.NODE_ENV === "development" ? "onboarding@resend.dev" : "raziel1q2w3e@gmail.com"; // Replace with your verified emai
     const { data, error: emailError } = await resend.emails.send({
       from: fromEmail,
       to: emailToUse,
